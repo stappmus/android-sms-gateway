@@ -37,6 +37,7 @@ object MmsAttachmentExtractor {
 
     data class ExtractionResult(
         val attachments: List<MmsAttachment>,
+        val textContent: String?,
         val providerMessageId: String?,
         val subject: String?,
         val contentClass: String?,
@@ -57,6 +58,7 @@ object MmsAttachmentExtractor {
         )
 
         var lastRow: MmsRow? = null
+        var lastTextContent: String? = null
 
         for ((attempt, delayMs) in EXTRACTION_RETRY_DELAYS_MS.withIndex()) {
             if (delayMs > 0) {
@@ -77,16 +79,18 @@ object MmsAttachmentExtractor {
             }
 
             lastRow = mmsRow
-            val parts = extractParts(context, mmsRow.id)
+            val partsResult = extractParts(context, mmsRow.id)
+            lastTextContent = partsResult.textContent ?: lastTextContent
             Log.d(
                 TAG,
-                "extract attempt=${attempt + 1}: rowId=${mmsRow.id}, parts=${parts.size}, " +
+                "extract attempt=${attempt + 1}: rowId=${mmsRow.id}, parts=${partsResult.attachments.size}, " +
                         "subject=${mmsRow.subject}, contentClass=${mmsRow.contentClass}, size=${mmsRow.size}"
             )
 
-            if (parts.isNotEmpty()) {
+            if (partsResult.attachments.isNotEmpty() || partsResult.textContent != null) {
                 return ExtractionResult(
-                    attachments = parts,
+                    attachments = partsResult.attachments,
+                    textContent = partsResult.textContent,
                     providerMessageId = mmsRow.messageId?.takeIf { it.isNotBlank() } ?: messageId,
                     subject = mmsRow.subject?.takeIf { it.isNotBlank() },
                     contentClass = mmsRow.contentClass?.takeIf { it.isNotBlank() },
@@ -102,15 +106,17 @@ object MmsAttachmentExtractor {
             )
 
             if (fallbackRow != null) {
-                val fallbackParts = extractParts(context, fallbackRow.id)
+                val fallbackResult = extractParts(context, fallbackRow.id)
+                lastTextContent = fallbackResult.textContent ?: lastTextContent
                 Log.d(
                     TAG,
-                    "extract attempt=${attempt + 1}: fallbackRowId=${fallbackRow.id}, parts=${fallbackParts.size}"
+                    "extract attempt=${attempt + 1}: fallbackRowId=${fallbackRow.id}, parts=${fallbackResult.attachments.size}"
                 )
 
-                if (fallbackParts.isNotEmpty()) {
+                if (fallbackResult.attachments.isNotEmpty() || fallbackResult.textContent != null) {
                     return ExtractionResult(
-                        attachments = fallbackParts,
+                        attachments = fallbackResult.attachments,
+                        textContent = fallbackResult.textContent,
                         providerMessageId = fallbackRow.messageId?.takeIf { it.isNotBlank() } ?: messageId,
                         subject = fallbackRow.subject?.takeIf { it.isNotBlank() },
                         contentClass = fallbackRow.contentClass?.takeIf { it.isNotBlank() },
@@ -122,6 +128,7 @@ object MmsAttachmentExtractor {
 
         return ExtractionResult(
             attachments = emptyList(),
+            textContent = lastTextContent,
             providerMessageId = lastRow?.messageId?.takeIf { it.isNotBlank() } ?: messageId,
             subject = lastRow?.subject?.takeIf { it.isNotBlank() },
             contentClass = lastRow?.contentClass?.takeIf { it.isNotBlank() },
@@ -145,10 +152,11 @@ object MmsAttachmentExtractor {
         )
 
         if (row != null) {
-            val parts = extractParts(context, row.id)
-            if (parts.isNotEmpty()) {
+            val partsResult = extractParts(context, row.id)
+            if (partsResult.attachments.isNotEmpty() || partsResult.textContent != null) {
                 return ExtractionResult(
-                    attachments = parts,
+                    attachments = partsResult.attachments,
+                    textContent = partsResult.textContent,
                     providerMessageId = row.messageId?.takeIf { it.isNotBlank() } ?: messageId,
                     subject = row.subject?.takeIf { it.isNotBlank() },
                     contentClass = row.contentClass?.takeIf { it.isNotBlank() },
@@ -166,7 +174,7 @@ object MmsAttachmentExtractor {
         )
     }
 
-    private fun extractParts(context: Context, mmsRowId: Long): List<MmsAttachment> {
+    private fun extractParts(context: Context, mmsRowId: Long): PartsResult {
 
         val projection = arrayOf(
             COLUMN_ID,
@@ -187,10 +195,20 @@ object MmsAttachmentExtractor {
             "seq ASC"
         )?.use { cursor ->
             Log.d(TAG, "extractParts rowId=$mmsRowId cursorCount=${cursor.count}")
-            buildList {
+            val textParts = mutableListOf<String>()
+            val attachments = buildList {
                 while (cursor.moveToNext()) {
                     try {
                         val mimeType = cursor.getString(COLUMN_MIME_TYPE)
+
+                        if (mimeType?.trim()?.lowercase() == MIME_TEXT) {
+                            val textValue = cursor.getString(COLUMN_TEXT)
+                            if (!textValue.isNullOrBlank()) {
+                                textParts.add(textValue)
+                            }
+                            continue
+                        }
+
                         if (!isAttachmentMimeType(mimeType)) {
                             continue
                         }
@@ -224,7 +242,14 @@ object MmsAttachmentExtractor {
                     }
                 }
             }
-        } ?: emptyList<MmsAttachment>().also {
+            PartsResult(
+                attachments = attachments,
+                textContent = textParts.joinToString("\n").takeIf { it.isNotEmpty() },
+            )
+        } ?: PartsResult(
+            attachments = emptyList(),
+            textContent = null,
+        ).also {
             Log.w(TAG, "extractParts rowId=$mmsRowId returned null cursor")
         }
     }
@@ -565,6 +590,11 @@ object MmsAttachmentExtractor {
         val width: Int?,
         val height: Int?,
         val durationMs: Long?,
+    )
+
+    private data class PartsResult(
+        val attachments: List<MmsAttachment>,
+        val textContent: String?,
     )
 
     private fun Cursor.getString(columnName: String): String? {

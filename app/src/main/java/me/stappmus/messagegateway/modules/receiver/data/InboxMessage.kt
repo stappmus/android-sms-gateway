@@ -37,6 +37,7 @@ sealed class InboxMessage(
         val subject: String?,
         val size: Long,
         val contentClass: String?,
+        val textContent: String?,
         val attachments: List<MmsAttachment> = emptyList(),
         address: String,
         date: Date,

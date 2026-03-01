@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 18,
-    "identityHash": "198a0004cb6bc5451ecc44fa527195e5",
+    "identityHash": "f5b894939836ce91d1e9617dacf739ef",
     "entities": [
       {
         "tableName": "Message",
@@ -101,10 +101,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [
           {
@@ -169,11 +169,11 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "messageId",
             "phoneNumber"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [],
         "foreignKeys": [
@@ -220,12 +220,12 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "messageId",
             "phoneNumber",
             "state"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [],
         "foreignKeys": [
@@ -268,11 +268,11 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "messageId",
             "state"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [],
         "foreignKeys": [
@@ -319,10 +319,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [],
         "foreignKeys": []
@@ -383,10 +383,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": true,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": true
+          ]
         },
         "indices": [
           {
@@ -414,7 +414,7 @@
       },
       {
         "tableName": "incoming_mms",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`transactionId` TEXT NOT NULL, `messageId` TEXT, `phoneNumber` TEXT NOT NULL, `simNumber` INTEGER, `subject` TEXT, `size` INTEGER NOT NULL, `contentClass` TEXT, `attachments` TEXT NOT NULL, `receivedAt` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`transactionId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`transactionId` TEXT NOT NULL, `messageId` TEXT, `phoneNumber` TEXT NOT NULL, `simNumber` INTEGER, `subject` TEXT, `size` INTEGER NOT NULL, `contentClass` TEXT, `textContent` TEXT, `attachments` TEXT NOT NULL, `receivedAt` INTEGER NOT NULL, `createdAt` INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(`transactionId`))",
         "fields": [
           {
             "fieldPath": "transactionId",
@@ -459,6 +459,12 @@
             "notNull": false
           },
           {
+            "fieldPath": "textContent",
+            "columnName": "textContent",
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
             "fieldPath": "attachments",
             "columnName": "attachments",
             "affinity": "TEXT",
@@ -479,10 +485,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": false,
           "columnNames": [
             "transactionId"
-          ],
-          "autoGenerate": false
+          ]
         },
         "indices": [
           {
@@ -549,10 +555,10 @@
           }
         ],
         "primaryKey": {
+          "autoGenerate": true,
           "columnNames": [
             "id"
-          ],
-          "autoGenerate": true
+          ]
         },
         "indices": [
           {
@@ -571,7 +577,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '198a0004cb6bc5451ecc44fa527195e5')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f5b894939836ce91d1e9617dacf739ef')"
     ]
   }
 }

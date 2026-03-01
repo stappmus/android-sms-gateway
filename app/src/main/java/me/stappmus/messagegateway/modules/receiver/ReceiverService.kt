@@ -109,6 +109,7 @@ class ReceiverService : KoinComponent {
                         messageId = message.messageId ?: message.transactionId,
                         phoneNumber = message.address,
                         simNumber = simNumber,
+                        message = message.textContent,
                         transactionId = message.transactionId,
                         subject = message.subject,
                         size = message.size,
@@ -212,6 +213,7 @@ class ReceiverService : KoinComponent {
                     subject = message.subject,
                     size = message.size,
                     contentClass = message.contentClass,
+                    textContent = message.textContent,
                     attachments = gson.toJson(message.attachments),
                     receivedAt = message.date.time,
                 )

@@ -47,6 +47,7 @@ class MmsDownloadedReceiver : MmsReceivedReceiver(), KoinComponent {
                 subject = extraction.subject ?: row.subject,
                 size = extraction.size ?: row.size,
                 contentClass = extraction.contentClass ?: row.contentClass,
+                textContent = extraction.textContent,
                 attachments = attachments,
                 address = row.address,
                 date = row.date,

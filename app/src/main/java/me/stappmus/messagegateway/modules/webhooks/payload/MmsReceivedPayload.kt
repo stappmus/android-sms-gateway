@@ -7,6 +7,7 @@ class MmsReceivedPayload(
     messageId: String,
     phoneNumber: String,
     simNumber: Int?,
+    val message: String?,
     val transactionId: String,
     val subject: String?,
     val size: Long,

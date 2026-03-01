@@ -83,6 +83,7 @@ class ProcessIncomingMmsWorker(
                 subject = extractionResult.subject ?: subject,
                 size = extractionResult.size ?: messageSize,
                 contentClass = extractionResult.contentClass ?: contentClass,
+                textContent = extractionResult.textContent,
                 attachments = attachments,
                 address = resolvedAddress,
                 date = Date(receivedAtMs),

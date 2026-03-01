@@ -21,6 +21,7 @@ data class IncomingMmsEntity(
     val subject: String?,
     val size: Long,
     val contentClass: String?,
+    val textContent: String? = null,
     @ColumnInfo(typeAffinity = ColumnInfo.TEXT)
     val attachments: String,
     val receivedAt: Long,
