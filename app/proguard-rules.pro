@@ -56,3 +56,8 @@
     public static **[] values();
     public static ** valueOf(java.lang.String);
 }
+
+# ── Preference XML fragment entry points (app:fragment) ───────────
+-keep class me.stappmus.messagegateway.ui.** {
+    public <init>();
+}
