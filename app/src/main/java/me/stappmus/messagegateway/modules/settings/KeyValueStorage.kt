@@ -10,5 +10,11 @@ interface KeyValueStorage {
 }
 
 inline fun <reified T> KeyValueStorage.get(key: String): T? {
-    return get<T>(key, object : TypeToken<T>(){}.type)
+    val typeOfT = try {
+        object : TypeToken<T>() {}.type
+    } catch (_: IllegalStateException) {
+        TypeToken.get(T::class.java).type
+    }
+
+    return get(key, typeOfT)
 }
